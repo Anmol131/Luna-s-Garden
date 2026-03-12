@@ -7,11 +7,10 @@ const getRandomCatPosition = () => ({
   left: `${randomBetween(10, 88)}%`,
 });
 
-const toPercentNumber = (value) => Number(String(value).replace('%', ''));
-
 const CatLuna = ({ onCatClick, autoMove, targetPosition, onReachTarget, visible, mood }) => {
   const [position, setPosition] = useState({ top: '76%', left: '50%' });
   const lastReachedTargetRef = useRef(null);
+  const targetReachTimeoutRef = useRef(null);
   const displayedPosition = targetPosition
     ? { top: targetPosition.top, left: targetPosition.left }
     : position;
@@ -31,20 +30,39 @@ const CatLuna = ({ onCatClick, autoMove, targetPosition, onReachTarget, visible,
   }, [autoMove, targetPosition]);
 
   useEffect(() => {
+    return () => {
+      if (targetReachTimeoutRef.current) {
+        clearTimeout(targetReachTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     if (!targetPosition) {
       lastReachedTargetRef.current = null;
+      if (targetReachTimeoutRef.current) {
+        clearTimeout(targetReachTimeoutRef.current);
+        targetReachTimeoutRef.current = null;
+      }
       return;
     }
 
     const targetId = targetPosition.id || `${targetPosition.left}-${targetPosition.top}`;
-    const leftDistance = Math.abs(toPercentNumber(displayedPosition.left) - toPercentNumber(targetPosition.left));
-    const topDistance = Math.abs(toPercentNumber(displayedPosition.top) - toPercentNumber(targetPosition.top));
+    if (lastReachedTargetRef.current === targetId) {
+      return;
+    }
 
-    if (leftDistance < 0.6 && topDistance < 0.6 && lastReachedTargetRef.current !== targetId) {
+    if (targetReachTimeoutRef.current) {
+      clearTimeout(targetReachTimeoutRef.current);
+    }
+
+    // Keep in sync with CSS transition time for smooth, believable movement callbacks.
+    targetReachTimeoutRef.current = setTimeout(() => {
       lastReachedTargetRef.current = targetId;
       onReachTarget(targetId);
-    }
-  }, [displayedPosition.left, displayedPosition.top, onReachTarget, targetPosition]);
+      targetReachTimeoutRef.current = null;
+    }, 1250);
+  }, [onReachTarget, targetPosition]);
 
   if (!visible) {
     return null;
