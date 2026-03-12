@@ -329,12 +329,37 @@ select {
 
 .luna-house__buttons {
   position: absolute;
-  bottom: -3.2rem;
+  top: -2.5rem;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   gap: 0.35rem;
   pointer-events: auto;
+}
+
+.garden-controls-shell {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 26;
+}
+
+.mobile-menu-btn {
+  display: none;
+  border: 0;
+  border-radius: 0.6rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: linear-gradient(135deg, #ffffff, #edf8f1);
+  color: #1d4f28;
+  font-size: 1.35rem;
+  cursor: pointer;
+  box-shadow: 0 12px 20px rgba(26, 64, 32, 0.2);
+}
+
+.garden--night .mobile-menu-btn {
+  background: linear-gradient(135deg, #233b71, #1b2d59);
+  color: #f2f8ff;
 }
 
 .luna-house__btn {
@@ -687,6 +712,11 @@ select {
 }
 
 @media (max-width: 900px) {
+  .garden-controls-shell {
+    right: 0.6rem;
+    bottom: 0.6rem;
+  }
+
   .garden-controls {
     right: 0.6rem;
     bottom: 0.6rem;
@@ -736,15 +766,43 @@ select {
   }
 
   .luna-house__buttons {
-    bottom: -2.75rem;
+    top: -2.35rem;
+  }
+
+  .garden-controls-shell {
+    top: 0.75rem;
+    right: 0.75rem;
+    bottom: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.4rem;
+  }
+
+  .mobile-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .garden-controls {
     grid-template-columns: repeat(4, 1fr);
     gap: 0.35rem;
     padding: 0.4rem;
-    right: 0.5rem;
-    bottom: 0.5rem;
+    position: static;
+    right: auto;
+    bottom: auto;
+    transform-origin: top right;
+    transform: scale(0.92);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 150ms ease, opacity 150ms ease;
+  }
+
+  .garden-controls--open {
+    transform: scale(1);
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .control-btn {

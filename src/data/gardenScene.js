@@ -67,7 +67,7 @@ export const initialRain = Array.from({ length: 54 }, (_, index) => createRainDr
 
 export const HOUSE_POSITION = {
   left: '85%',
-  top: '80%',
+  top: '74%',
 };
 
 export const BOWL_POSITION = {

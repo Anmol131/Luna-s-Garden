@@ -37,11 +37,13 @@ const Garden = () => {
   const [playTimeLeft, setPlayTimeLeft] = useState(0);
   const [throwFx, setThrowFx] = useState(null);
   const [catMood, setCatMood] = useState('');
+  const [isMobileControlsOpen, setIsMobileControlsOpen] = useState(false);
   const romanticMessageIndexRef = useRef(0);
-  const catMessageIndexRef = useRef(0);
+  const lastCatMessageIndexRef = useRef(-1);
   const feedTimeoutRef = useRef(null);
   const throwFxTimeoutRef = useRef(null);
   const throwResolveTimeoutRef = useRef(null);
+  const randomCatTalkTimeoutRef = useRef(null);
 
   useEffect(() => {
     if (!uiMessage) {
@@ -80,6 +82,10 @@ const Garden = () => {
       if (throwResolveTimeoutRef.current) {
         clearTimeout(throwResolveTimeoutRef.current);
       }
+
+      if (randomCatTalkTimeoutRef.current) {
+        clearTimeout(randomCatTalkTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -88,10 +94,44 @@ const Garden = () => {
     romanticMessageIndexRef.current = (romanticMessageIndexRef.current + 1) % romanticMessages.length;
   };
 
+  const getRandomCatMessage = useCallback(() => {
+    if (catMessages.length === 1) {
+      return catMessages[0];
+    }
+
+    let nextIndex = lastCatMessageIndexRef.current;
+    while (nextIndex === lastCatMessageIndexRef.current) {
+      nextIndex = Math.floor(Math.random() * catMessages.length);
+    }
+
+    lastCatMessageIndexRef.current = nextIndex;
+    return catMessages[nextIndex];
+  }, []);
+
   const handleCatClick = () => {
-    setMessage(catMessages[catMessageIndexRef.current]);
-    catMessageIndexRef.current = (catMessageIndexRef.current + 1) % catMessages.length;
+    setMessage(getRandomCatMessage());
   };
+
+  useEffect(() => {
+    const scheduleRandomTalk = () => {
+      const delayMs = Math.floor(10000 + Math.random() * 5000);
+      randomCatTalkTimeoutRef.current = setTimeout(() => {
+        if (!isPlayMode && !catSleeping && catVisible) {
+          setUiMessage(`Luna: ${getRandomCatMessage()}`);
+          setCatMood('meow');
+        }
+        scheduleRandomTalk();
+      }, delayMs);
+    };
+
+    scheduleRandomTalk();
+
+    return () => {
+      if (randomCatTalkTimeoutRef.current) {
+        clearTimeout(randomCatTalkTimeoutRef.current);
+      }
+    };
+  }, [catSleeping, catVisible, getRandomCatMessage, isPlayMode]);
 
   const handleCatReachTarget = useCallback((targetId) => {
     if (catTask === 'sleep' && targetId === 'house') {
@@ -129,7 +169,7 @@ const Garden = () => {
       setCatMood('got it');
       setBallPosition(null);
       setThrowFx(null);
-      setUiMessage('Luna got the tennis ball and is bringing it back 🎾');
+      setUiMessage('Luna got the cricket ball and is bringing it back 🔴');
       return;
     }
 
@@ -142,7 +182,7 @@ const Garden = () => {
       setIsPlayMode(true);
       setPlayModeEndsAt(Date.now() + 5000);
       setPlayTimeLeft(5);
-      setUiMessage('Luna returned it! Throw again within 5 seconds 🎾');
+      setUiMessage('Luna returned it! Throw again within 5 seconds 🔴');
       return;
     }
 
@@ -171,6 +211,7 @@ const Garden = () => {
     setCatTask('feed');
     setCatTarget({ ...BOWL_POSITION, id: 'bowl' });
     setUiMessage(`Dinner is served: ${nextFood}. Come here, Luna 🥣`);
+    setIsMobileControlsOpen(false);
   };
 
   const playWithLuna = () => {
@@ -186,7 +227,8 @@ const Garden = () => {
     setCatAutoMove(false);
     setCatTask(null);
     setCatTarget(null);
-    setUiMessage('Click anywhere to throw the tennis ball. You have 10 seconds 🎾');
+    setUiMessage('Click anywhere to throw the cricket ball. You have 10 seconds 🔴');
+    setIsMobileControlsOpen(false);
   };
 
   const sleepLuna = () => {
@@ -201,6 +243,7 @@ const Garden = () => {
     setCatTask('sleep');
     setCatTarget({ ...HOUSE_POSITION, id: 'house' });
     setUiMessage('Luna is heading to her house...');
+    setIsMobileControlsOpen(false);
   };
 
   const wakeLuna = () => {
@@ -210,15 +253,18 @@ const Garden = () => {
     setCatTarget({ left: '80%', top: '76%', id: 'wake' });
     setCatAutoMove(true);
     setUiMessage('Good morning, Luna 🌞');
+    setIsMobileControlsOpen(false);
   };
 
   const toggleDayNight = () => {
     setIsNight((current) => !current);
+    setIsMobileControlsOpen(false);
   };
 
   const toggleRain = () => {
     setIsRaining((current) => !current);
     setUiMessage((prev) => (prev === 'Rain started 🌧' ? 'Rain stopped ☀️' : 'Rain started 🌧'));
+    setIsMobileControlsOpen(false);
   };
 
   const handlePlayThrow = useCallback(({ percentLeft, percentTop, clientX, clientY }) => {
@@ -261,7 +307,7 @@ const Garden = () => {
       throwResolveTimeoutRef.current = null;
     }, 420);
 
-    setUiMessage('Luna is sprinting to fetch the tennis ball 🏃‍♀️');
+    setUiMessage('Luna is sprinting to fetch the cricket ball 🏃‍♀️');
   }, [isPlayMode, catTask]);
 
   useEffect(() => {
@@ -404,13 +450,13 @@ const Garden = () => {
         )}
         {ballPosition && (
           <div className="garden-item garden-item--ball" style={{ left: ballPosition.left, top: ballPosition.top }}>
-            🎾
+            🔴
           </div>
         )}
 
         {throwFx && (
           <div className="garden-item garden-item--throw" style={{ left: throwFx.x, top: throwFx.y }}>
-            🎾
+            🔴
           </div>
         )}
 
@@ -424,22 +470,35 @@ const Garden = () => {
         />
       </section>
 
-      <aside className="garden-controls" aria-label="Garden control panel">
-        <button type="button" onClick={feedLuna} className="control-btn" title="Feed Luna">
-          🍖
+      <div className="garden-controls-shell" aria-label="Garden control panel">
+        <button
+          type="button"
+          className="mobile-menu-btn"
+          onClick={() => setIsMobileControlsOpen((current) => !current)}
+          aria-expanded={isMobileControlsOpen}
+          aria-controls="garden-controls"
+          title="Open controls"
+        >
+          ☰
         </button>
-        <button type="button" onClick={playWithLuna} className="control-btn" title="Play With Luna">
-          🎾
-        </button>
-        <button type="button" onClick={toggleDayNight} className="control-btn" title="Day / Night">
-          🌙
-        </button>
-        <button type="button" onClick={toggleRain} className="control-btn" title="Rain">
-          🌧
-        </button>
-      </aside>
 
-      {isPlayMode && <div className="play-mode-hint">Click anywhere to throw the tennis ball. Time left: {playTimeLeft}s</div>}
+        <aside id="garden-controls" className={`garden-controls ${isMobileControlsOpen ? 'garden-controls--open' : ''}`}>
+          <button type="button" onClick={feedLuna} className="control-btn" title="Feed Luna">
+            🍖
+          </button>
+          <button type="button" onClick={playWithLuna} className="control-btn" title="Play With Luna">
+            🔴
+          </button>
+          <button type="button" onClick={toggleDayNight} className="control-btn" title="Day / Night">
+            🌙
+          </button>
+          <button type="button" onClick={toggleRain} className="control-btn" title="Rain">
+            🌧
+          </button>
+        </aside>
+      </div>
+
+      {isPlayMode && <div className="play-mode-hint">Click anywhere to throw the cricket ball. Time left: {playTimeLeft}s</div>}
 
       {!isPlayMode && uiMessage && <div className="garden-toast">{uiMessage}</div>}
 
