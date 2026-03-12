@@ -38,13 +38,23 @@ select {
   background:
     radial-gradient(circle at top, rgba(255, 251, 221, 0.95), rgba(255, 251, 221, 0) 34%),
     linear-gradient(180deg, #dff7ff 0%, #bce8ff 26%, #7dca84 58%, #3f8a43 100%);
+  transition: background 500ms ease;
+}
+
+.garden--night {
+  background:
+    radial-gradient(circle at top, rgba(35, 48, 90, 0.95), rgba(19, 26, 49, 0.45) 34%),
+    linear-gradient(180deg, #09162f 0%, #10254b 40%, #1d5332 74%, #10361e 100%);
 }
 
 .garden__sky,
 .garden__grass,
 .garden__petals,
 .garden__field,
-.garden__header {
+.garden__header,
+.garden__stars,
+.garden__moon,
+.garden__rain {
   position: absolute;
   inset: 0;
 }
@@ -54,6 +64,11 @@ select {
     radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.55), transparent 20%),
     radial-gradient(circle at 80% 18%, rgba(255, 255, 255, 0.45), transparent 18%);
   pointer-events: none;
+  transition: opacity 400ms ease;
+}
+
+.garden--night .garden__sky {
+  opacity: 0.4;
 }
 
 .garden__grass {
@@ -68,51 +83,68 @@ select {
   box-shadow: 0 -14px 50px rgba(35, 93, 32, 0.15);
 }
 
+.garden--night .garden__grass {
+  filter: brightness(0.65) saturate(0.85);
+}
+
+.garden__moon {
+  inset: 10% auto auto 78%;
+  width: 5.2rem;
+  height: 5.2rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fffbd6, #e4e2bf 62%, #c2bf9f 100%);
+  box-shadow: 0 0 35px rgba(255, 249, 180, 0.32);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 350ms ease, transform 350ms ease;
+  pointer-events: none;
+}
+
+.garden--night .garden__moon {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.garden__stars {
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 350ms ease;
+}
+
+.garden--night .garden__stars {
+  opacity: 1;
+}
+
+.garden__star {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
+  animation: starTwinkle 2.6s ease-in-out infinite;
+}
+
+.garden__rain {
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 250ms ease;
+}
+
+.garden--rain .garden__rain {
+  opacity: 1;
+}
+
+.garden__drop {
+  position: absolute;
+  top: -12%;
+  width: 2px;
+  height: 70px;
+  background: linear-gradient(180deg, rgba(210, 236, 255, 0), rgba(210, 236, 255, 0.8));
+  animation: rainfall linear infinite;
+}
+
 .garden__petals,
 .garden__field {
   pointer-events: none;
-}
-
-.garden__header {
-  inset: 0 auto auto 0;
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 1rem 1rem 0;
-  text-align: center;
-  pointer-events: none;
-}
-
-.garden__eyebrow {
-  margin: 0;
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  border-radius: 999px;
-  padding: 0.45rem 0.9rem;
-  background: rgba(255, 255, 255, 0.22);
-  color: #285b2a;
-  font-size: 0.78rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  backdrop-filter: blur(8px);
-}
-
-.garden__title {
-  margin: 0;
-  max-width: min(90vw, 42rem);
-  border-radius: 999px;
-  padding: 0.8rem 1.35rem;
-  background: rgba(255, 255, 255, 0.28);
-  color: #204f28;
-  font-size: clamp(1.8rem, 4vw, 3.5rem);
-  line-height: 1;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 18px 45px rgba(34, 78, 37, 0.15);
-}
-
-.garden__field {
-  z-index: 10;
 }
 
 .garden__petal {
@@ -123,6 +155,40 @@ select {
   transform: translate3d(0, 0, 0) scale(var(--petal-scale, 1));
 }
 
+.garden__header {
+  inset: 0 auto auto 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 1rem 1rem 0;
+  text-align: center;
+  pointer-events: none;
+}
+
+.garden__title {
+  margin: 0;
+  max-width: min(90vw, 42rem);
+  border-radius: 999px;
+  padding: 0.8rem 1.35rem;
+  background: rgba(255, 255, 255, 0.28);
+  color: #204f28;
+  font-size: clamp(1.6rem, 4vw, 3.3rem);
+  line-height: 1;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 18px 45px rgba(34, 78, 37, 0.15);
+}
+
+.garden--night .garden__title {
+  background: rgba(26, 42, 84, 0.5);
+  color: #d5f0dc;
+}
+
+.garden__field {
+  z-index: 10;
+}
+
 .flower {
   position: absolute;
   pointer-events: auto;
@@ -130,10 +196,11 @@ select {
   padding: 0;
   background: transparent;
   cursor: pointer;
-  transform: translate(-50%, -50%) rotate(var(--flower-rotation, 0deg));
+  transform: translate(-50%, -50%) rotate(var(--flower-rotation, 0deg)) scale(var(--flower-water-scale, 1));
   transform-origin: center bottom;
-  animation: flowerFloat var(--flower-float-duration, 5s) ease-in-out infinite;
-  animation-delay: var(--flower-float-delay, 0s);
+  animation:
+    flowerBloom 500ms cubic-bezier(0.2, 0.8, 0.2, 1) var(--flower-bloom-delay, 0ms) both,
+    flowerFloat var(--flower-float-duration, 5s) ease-in-out calc(var(--flower-float-delay, 0s) + var(--flower-bloom-delay, 0ms)) infinite;
   transition: transform 180ms ease, filter 180ms ease;
   filter: drop-shadow(0 10px 14px rgba(19, 62, 22, 0.15));
   touch-action: manipulation;
@@ -142,8 +209,15 @@ select {
 .flower:hover,
 .flower:focus-visible,
 .flower:active {
-  transform: translate(-50%, -50%) rotate(var(--flower-rotation, 0deg)) scale(1.14);
+  transform: translate(-50%, -50%) rotate(var(--flower-rotation, 0deg)) scale(calc(var(--flower-water-scale, 1) * 1.14));
   filter: drop-shadow(0 14px 22px rgba(19, 62, 22, 0.24));
+}
+
+.flower--rain-sway {
+  animation:
+    flowerBloom 500ms cubic-bezier(0.2, 0.8, 0.2, 1) var(--flower-bloom-delay, 0ms) both,
+    flowerFloat var(--flower-float-duration, 5s) ease-in-out calc(var(--flower-float-delay, 0s) + var(--flower-bloom-delay, 0ms)) infinite,
+    flowerSway 1.8s ease-in-out infinite;
 }
 
 .flower:focus-visible {
@@ -154,6 +228,11 @@ select {
 .flower__emoji {
   display: block;
   line-height: 1;
+  filter: saturate(1.08);
+}
+
+.garden--night .flower__emoji {
+  filter: saturate(0.82) brightness(0.94);
 }
 
 .garden-cat {
@@ -194,6 +273,142 @@ select {
   color: #22552b;
   font-size: 0.9rem;
   font-weight: 700;
+}
+
+.garden-cat__mood {
+  border-radius: 999px;
+  padding: 0.2rem 0.45rem;
+  background: rgba(255, 244, 225, 0.86);
+  color: #5e4b2f;
+  font-size: 0.72rem;
+}
+
+.luna-house {
+  position: absolute;
+  z-index: 11;
+  width: 6.8rem;
+  height: 6rem;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.luna-house__roof {
+  position: absolute;
+  inset: 0.3rem 0.6rem auto;
+  border-left: 2.8rem solid transparent;
+  border-right: 2.8rem solid transparent;
+  border-bottom: 2.2rem solid #e18375;
+}
+
+.luna-house__body {
+  position: absolute;
+  inset: 2.2rem 0.9rem 0.6rem;
+  border-radius: 0.9rem;
+  background: linear-gradient(180deg, #f9dcc0, #f2c49c 80%);
+  box-shadow: 0 8px 14px rgba(58, 30, 13, 0.2);
+}
+
+.luna-house__door {
+  position: absolute;
+  inset: auto 2.7rem 0.65rem;
+  height: 2rem;
+  border-radius: 0.6rem 0.6rem 0.2rem 0.2rem;
+  background: #8b5a3c;
+}
+
+.luna-house__sleep {
+  position: absolute;
+  top: -1rem;
+  right: -0.35rem;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-shadow: 0 4px 8px rgba(14, 24, 53, 0.45);
+  animation: floatSleep 1.3s ease-in-out infinite;
+}
+
+.garden-item {
+  position: absolute;
+  z-index: 12;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.garden-item--bowl {
+  font-size: 2rem;
+}
+
+.garden-item--ball {
+  font-size: 1.9rem;
+  animation: ballBounce 850ms ease-in-out infinite;
+}
+
+.garden-controls {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 26;
+  display: grid;
+  gap: 0.45rem;
+  width: min(16rem, calc(100vw - 2rem));
+  padding: 0.75rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.73);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 18px 35px rgba(26, 64, 32, 0.18);
+  backdrop-filter: blur(8px);
+}
+
+.garden--night .garden-controls {
+  background: rgba(18, 31, 60, 0.72);
+  border-color: rgba(156, 195, 255, 0.32);
+}
+
+.garden-controls button {
+  border: 0;
+  border-radius: 0.7rem;
+  padding: 0.52rem 0.68rem;
+  background: linear-gradient(135deg, #ffffff, #edf8f1);
+  color: #1d4f28;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 160ms ease, filter 160ms ease;
+}
+
+.garden-controls button:hover,
+.garden-controls button:focus-visible,
+.garden-controls button:active {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+}
+
+.garden-controls button:focus-visible {
+  outline: 2px solid rgba(72, 138, 97, 0.48);
+  outline-offset: 2px;
+}
+
+.garden--night .garden-controls button {
+  background: linear-gradient(135deg, #233b71, #1b2d59);
+  color: #f2f8ff;
+}
+
+.garden-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.2rem;
+  z-index: 27;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  padding: 0.62rem 1rem;
+  background: rgba(24, 61, 38, 0.88);
+  color: #f0fff4;
+  font-size: 0.92rem;
+  box-shadow: 0 10px 20px rgba(22, 50, 23, 0.28);
+  animation: toastIn 180ms ease-out;
+}
+
+.garden--night .garden-toast {
+  background: rgba(13, 27, 56, 0.9);
 }
 
 .message-popup__overlay {
@@ -251,14 +466,37 @@ select {
   outline-offset: 4px;
 }
 
+@keyframes flowerBloom {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--flower-rotation, 0deg)) scale(0.3);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--flower-rotation, 0deg)) scale(var(--flower-water-scale, 1));
+  }
+}
+
 @keyframes flowerFloat {
   0%,
   100% {
-    transform: translate(-50%, -50%) rotate(var(--flower-rotation, 0deg));
+    transform: translate(-50%, -50%) rotate(var(--flower-rotation, 0deg)) scale(var(--flower-water-scale, 1));
   }
 
   50% {
-    transform: translate(-50%, calc(-50% - 12px)) rotate(calc(var(--flower-rotation, 0deg) + 2deg));
+    transform: translate(-50%, calc(-50% - 12px)) rotate(calc(var(--flower-rotation, 0deg) + 2deg)) scale(var(--flower-water-scale, 1));
+  }
+}
+
+@keyframes flowerSway {
+  0%,
+  100% {
+    margin-left: 0;
+  }
+
+  50% {
+    margin-left: 5px;
   }
 }
 
@@ -278,6 +516,61 @@ select {
   }
 }
 
+@keyframes rainfall {
+  from {
+    transform: translateY(-12vh);
+  }
+
+  to {
+    transform: translateY(116vh);
+  }
+}
+
+@keyframes starTwinkle {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes ballBounce {
+  0%,
+  100% {
+    transform: translate(-50%, -50%);
+  }
+
+  50% {
+    transform: translate(-50%, calc(-50% - 10px));
+  }
+}
+
+@keyframes floatSleep {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
 @keyframes popupRise {
   from {
     opacity: 0;
@@ -287,6 +580,14 @@ select {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 900px) {
+  .garden-controls {
+    width: min(14rem, calc(100vw - 1.2rem));
+    right: 0.6rem;
+    bottom: 0.6rem;
   }
 }
 
@@ -301,7 +602,7 @@ select {
   }
 
   .garden__title {
-    padding: 0.75rem 1rem;
+    padding: 0.68rem 0.95rem;
   }
 
   .garden__grass {
@@ -310,6 +611,27 @@ select {
 
   .garden-cat {
     padding: 0.35rem 0.6rem;
+  }
+
+  .garden-controls {
+    grid-template-columns: 1fr 1fr;
+    width: calc(100vw - 1rem);
+    padding: 0.55rem;
+    right: 0.5rem;
+    bottom: 0.5rem;
+  }
+
+  .garden-controls button {
+    text-align: center;
+    font-size: 0.82rem;
+    padding: 0.55rem 0.35rem;
+  }
+
+  .garden-toast {
+    bottom: 7.6rem;
+    max-width: calc(100vw - 1rem);
+    text-align: center;
+    font-size: 0.83rem;
   }
 
   .message-popup {
